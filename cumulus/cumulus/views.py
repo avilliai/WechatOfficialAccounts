@@ -151,6 +151,7 @@ async def asyncchatGLM(prompt,username):
 
     if len(st1)>200:
         p1=txtImg(st1)
+        return p1
     # 更新该用户prompt
     prompt.append({"role": "assistant", "content": st1})
     # 超过10，移除第一个元素
