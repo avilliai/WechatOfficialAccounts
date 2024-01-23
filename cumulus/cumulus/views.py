@@ -94,15 +94,16 @@ def chatGLM(prompt):
     #zhipuai.api_key =
 
     client = ZhipuAI(api_key=conf.get("zhipuai.api_key"))  # 填写您自己的APIKey
-
-
     response = client.chat.completions.create(
         model="glm-4",  # 填写需要调用的模型名称
         messages=prompt,
+        stream=True,
     )
-    print(response.choices[0].message)
-    str1=response.choices[0].message.content
-    #print(response.choices[0].message)
+
+    str1=''
+    for chunk in response:
+        str1 += chunk.choices[0].delta.content
+        #print()
 
     '''meta={'user_info': "读者是热爱学习人文社科和先进技术，希望通过与小云的交流学习到更多人文社科相关知识",'user_name': '读者同志','bot_name': '小云','bot_info':"小云是一个热爱人文社科和学习先进技术的ai，小云会回复读者的种种疑问，小云具有丰富的人文社科知识，对于政治学、社会学都有相当程度的专业认知"}
     response = zhipuai.model_api.sse_invoke(
@@ -142,17 +143,6 @@ async def asyncchatGLM(prompt,username):
     st1 = await loop.run_in_executor(None, chatGLM,prompt)
     # 打印结果
     #print(result)
-
-
-    if len(st1) > 400:
-
-
-        try:
-            prompt.remove(prompt[-1])
-            chatGLMData[username]=prompt
-        except:
-            logger.info("删除上一次对话失败")
-        return st1[:100]
 
     logger.info("chatGLM:" + st1)
 
