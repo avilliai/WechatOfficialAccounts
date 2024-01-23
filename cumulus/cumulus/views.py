@@ -47,10 +47,11 @@ import xml.etree.ElementTree as ET
 import time
 import requests
 import random
-
-token =
-appid =
-secret =
+with open('config.yaml', 'r', encoding='utf-8') as f:
+    conf = yaml.load(f.read(), Loader=yaml.FullLoader)
+token = conf.get("token")
+appid = conf.get("appid")
+secret = conf.get("secret")
 # 线程预备
 newLoop = asyncio.new_event_loop()
 listen = CListen(newLoop)
@@ -87,7 +88,7 @@ def get_reply(info, username):  # 这个key是一个我自己申请的，大家�
 
 #CharacterchatGLM部分
 def chatGLM(prompt):
-    zhipuai.api_key =
+    zhipuai.api_key = conf.get("zhipuai.api_key")
     meta={'user_info': "读者是热爱学习人文社科和先进技术，希望通过与小云的交流学习到更多人文社科相关知识",'user_name': '读者同志','bot_name': '小云','bot_info':"小云是一个热爱人文社科和学习先进技术的ai，小云会回复读者的种种疑问，小云具有丰富的人文社科知识，对于政治学、社会学都有相当程度的专业认知"}
     response = zhipuai.model_api.sse_invoke(
         model="glm-4",
