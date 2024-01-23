@@ -4,6 +4,9 @@ import threading
 import zhipuai
 import colorlog
 import yaml
+from zhipuai import ZhipuAI
+
+
 def newLogger():
     # 创建一个logger对象
     logger = logging.getLogger("bert_chatter")
@@ -88,8 +91,19 @@ def get_reply(info, username):  # 这个key是一个我自己申请的，大家�
 
 #CharacterchatGLM部分
 def chatGLM(prompt):
-    zhipuai.api_key = conf.get("zhipuai.api_key")
-    meta={'user_info': "读者是热爱学习人文社科和先进技术，希望通过与小云的交流学习到更多人文社科相关知识",'user_name': '读者同志','bot_name': '小云','bot_info':"小云是一个热爱人文社科和学习先进技术的ai，小云会回复读者的种种疑问，小云具有丰富的人文社科知识，对于政治学、社会学都有相当程度的专业认知"}
+    #zhipuai.api_key =
+
+    client = ZhipuAI(api_key=conf.get("zhipuai.api_key"))  # 填写您自己的APIKey
+
+
+    response = client.chat.completions.create(
+        model="glm-4",  # 填写需要调用的模型名称
+        messages=prompt,
+    )
+    str1=response.choices[0].message.get("content")
+    print(response.choices[0].message)
+
+    '''meta={'user_info': "读者是热爱学习人文社科和先进技术，希望通过与小云的交流学习到更多人文社科相关知识",'user_name': '读者同志','bot_name': '小云','bot_info':"小云是一个热爱人文社科和学习先进技术的ai，小云会回复读者的种种疑问，小云具有丰富的人文社科知识，对于政治学、社会学都有相当程度的专业认知"}
     response = zhipuai.model_api.sse_invoke(
         model="glm-4",
         #meta= meta,
@@ -112,7 +126,7 @@ def chatGLM(prompt):
       else:
           str1 += event.data
           #print(event.data)
-    #print(str1)
+    #print(str1)'''
     return str1
 # 创建一个异步函数
 async def asyncchatGLM(prompt,username):
