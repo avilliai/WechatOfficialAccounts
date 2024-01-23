@@ -7,7 +7,7 @@ import colorlog
 import yaml
 from zhipuai import ZhipuAI
 
-from cumulus.plugins.txt2img import txtImg
+from plugins.txt2img import txtImg
 
 
 def newLogger():
