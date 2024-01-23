@@ -1,10 +1,13 @@
 import asyncio
 import logging
+import os.path
 import threading
 import zhipuai
 import colorlog
 import yaml
 from zhipuai import ZhipuAI
+
+from cumulus.plugins.txt2img import txtImg
 
 
 def newLogger():
@@ -146,7 +149,8 @@ async def asyncchatGLM(prompt,username):
 
     logger.info("chatGLM:" + st1)
 
-
+    if len(st1)>200:
+        p1=txtImg(st1)
     # 更新该用户prompt
     prompt.append({"role": "assistant", "content": st1})
     # 超过10，移除第一个元素
@@ -174,7 +178,16 @@ def get_access_token():
         access_token = ans["access_token"]
         expire_time = ans["expires_in"] + time.time()
     return access_token
-
+def get_media_ID(path):
+    img_url='https://api.weixin.qq.com/cgi-bin/material/add_material'
+    payload_img={
+        'access_token':get_access_token(),
+        'type':'image'
+    }
+    data ={'media':open(path,'rb')}
+    r=requests.post(url=img_url,params=payload_img,files=data)
+    dict =r.json()
+    return dict['media_id']
 
 # Create your views here.
 
@@ -205,6 +218,18 @@ def weixin_main(request):
         if msg_type == 'text':
             Content = xmldata.find('Content').text
             Content = deal_with_content(Content, FromUserName)
+            if os.path.isfile(Content):
+                MediaId=get_media_ID(Content)
+                return_data = """<xml>
+                  <ToUserName><![CDATA[{toUser}]]></ToUserName>
+                  <FromUserName><![CDATA[{fromUser}]]></FromUserName>
+                  <CreateTime>{ctime}</CreateTime>
+                  <MsgType><![CDATA[image]]></MsgType>
+                  <Image>
+                    <MediaId><![CDATA[{Content}]]></MediaId>
+                  </Image>
+                  </xml>""".format(toUser=FromUserName, fromUser=ToUserName, ctime=time.time(), Content=MediaId)
+                return HttpResponse(return_data)
             return_data = """<xml>
   <ToUserName><![CDATA[{toUser}]]></ToUserName>
   <FromUserName><![CDATA[{fromUser}]]></FromUserName>
@@ -213,21 +238,7 @@ def weixin_main(request):
   <Content><![CDATA[{content}]]></Content>
 </xml>""".format(toUser=FromUserName, fromUser=ToUserName, ctime=time.time(), content=Content)
             return HttpResponse(return_data)
-        elif msg_type == 'image':  # 直接把图片保存下来并且发回去同样的
-            MediaId = xmldata.find('MediaId').text
-            PicUrl = xmldata.find('PicUrl').text
-            with open(MediaId + ".png", 'wb') as f:
-                f.write(requests.get(PicUrl).content)
-            return_data = """<xml>
-  <ToUserName><![CDATA[{toUser}]]></ToUserName>
-  <FromUserName><![CDATA[{fromUser}]]></FromUserName>
-  <CreateTime>{ctime}</CreateTime>
-  <MsgType><![CDATA[image]]></MsgType>
-  <Image>
-    <MediaId><![CDATA[{Content}]]></MediaId>
-  </Image>
-  </xml>""".format(toUser=FromUserName, fromUser=ToUserName, ctime=time.time(), Content=MediaId)
-            return HttpResponse(return_data)
+
         return HttpResponse("""<xml>
   <ToUserName><![CDATA[{toUser}]]></ToUserName>
   <FromUserName><![CDATA[{fromUser}]]></FromUserName>
