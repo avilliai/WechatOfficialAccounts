@@ -73,6 +73,8 @@ if model=="charglm":
 elif model=="gemini":
     with open('data/GeminiData.yaml', 'r', encoding='utf-8') as f:
         cha = yaml.load(f.read(), Loader=yaml.FullLoader)
+    proxy=conf.get("proxy")
+    os.environ["http_proxy"] = proxy
 global chatGLMData
 chatGLMData = cha
 def get_reply(info, username):
