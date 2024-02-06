@@ -101,7 +101,7 @@ def get_reply(info, username):
         logger.info("gemini接收提问:" + info)
         try:
             # logger.info(geminiapikey)
-            r = await geminirep(ak=geminiapikey, messages=prompt)
+            r = geminirep(ak=geminiapikey, messages=prompt)
             # 更新该用户prompt
             prompt.append({"role": 'model', "parts": [r]})
             # 超过10，移除第一个元素
