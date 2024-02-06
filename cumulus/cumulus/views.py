@@ -9,7 +9,7 @@ from zhipuai import ZhipuAI
 
 from plugins.txt2img import txtImg
 
-from cumulus.plugins.googleGemini import geminirep
+from plugins.googleGemini import geminirep
 
 
 def newLogger():
