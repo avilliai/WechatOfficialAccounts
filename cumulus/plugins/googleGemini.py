@@ -12,7 +12,7 @@ def geminirep(ak,messages):
     #print(type(messages))
 
     response = model.generate_content(messages)
-    #print()
+    print(response.text,type(response.text))
     r=response.text
     return r
 
