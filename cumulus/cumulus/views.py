@@ -9,6 +9,8 @@ from zhipuai import ZhipuAI
 
 from plugins.txt2img import txtImg
 
+from cumulus.plugins.googleGemini import geminirep
+
 
 def newLogger():
     # 创建一个logger对象
@@ -58,16 +60,22 @@ with open('config.yaml', 'r', encoding='utf-8') as f:
 token = conf.get("token")
 appid = conf.get("appid")
 secret = conf.get("secret")
+model=conf.get("model")
+geminiapikey=conf.get("gemini.api_key")
 # 线程预备
 newLoop = asyncio.new_event_loop()
 listen = CListen(newLoop)
 listen.setDaemon(True)
 listen.start()
-with open('data/chatGLMData.yaml', 'r', encoding='utf-8') as f:
-    cha = yaml.load(f.read(), Loader=yaml.FullLoader)
+if model=="charglm":
+    with open('data/chatGLMData.yaml', 'r', encoding='utf-8') as f:
+        cha = yaml.load(f.read(), Loader=yaml.FullLoader)
+elif model=="gemini":
+    with open('data/GeminiData.yaml', 'r', encoding='utf-8') as f:
+        cha = yaml.load(f.read(), Loader=yaml.FullLoader)
 global chatGLMData
 chatGLMData = cha
-def get_reply(info, username):  # 这个key是一个我自己申请的，大家可以自己注册图灵机器人来获取一个key
+def get_reply(info, username):
     global chatGLMData
     # 构建新的prompt
     if info=="/clear":
@@ -75,22 +83,51 @@ def get_reply(info, username):  # 这个key是一个我自己申请的，大家�
         return "已清空对话"
     elif info=="帮助":
         return "施工中·"
-    tep = {"role": "user", "content": info}
-    # print(type(tep))
-    # 获取以往的prompt
-    if username in chatGLMData:
-        prompt = chatGLMData.get(username)
-        prompt.append({"role": "user", "content": info})
-    # 没有该用户，以本次对话作为prompt
+    if model=="gemini":
+        tep = {"role": "user", "parts": [info]}
+        # print(type(tep))
+        # 获取以往的prompt
+        if username in chatGLMData:
+            prompt = chatGLMData.get(username)
+            prompt.append({"role": "user", 'parts': [text]})
+        # 没有该用户，以本次对话作为prompt
+        else:
+            prompt = [tep]
+            chatGLMData[username] = prompt
+        logger.info("gemini接收提问:" + info)
+        try:
+            # logger.info(geminiapikey)
+            r = await geminirep(ak=geminiapikey, messages=prompt)
+            # 更新该用户prompt
+            prompt.append({"role": 'model', "parts": [r]})
+            # 超过10，移除第一个元素
+            chatGLMData[username] = prompt
+            # 写入文件
+            with open('data/GeminiData.yaml', 'w', encoding="utf-8") as file:
+                yaml.dump(chatGLMData, file, allow_unicode=True)
+            return r
+            # asyncio.run_coroutine_threadsafe(asyncgemini(geminiapikey,prompt, event,text), newLoop)
+            # st1 = await chatGLM(selfApiKey, meta1, prompt)
+        except Exception as e:
+            logger.error(e)
+            return "gemini启动出错，请联系master检查apiKey或重试"
     else:
-        prompt = [tep]
-        chatGLMData[username] = prompt
+        tep = {"role": "user", "content": info}
+        # print(type(tep))
+        # 获取以往的prompt
+        if username in chatGLMData:
+            prompt = chatGLMData.get(username)
+            prompt.append({"role": "user", "content": info})
+        # 没有该用户，以本次对话作为prompt
+        else:
+            prompt = [tep]
+            chatGLMData[username] = prompt
 
 
-    b=asyncio.run_coroutine_threadsafe(asyncchatGLM(prompt,username), newLoop)
-    if "[系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。]" in b.result():
-        return b.result().replace("[系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。]","\nps:如果出现聊天异常可以发送 /clear")
-    return b.result()
+        b=asyncio.run_coroutine_threadsafe(asyncchatGLM(prompt,username), newLoop)
+        if "[系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。]" in b.result():
+            return b.result().replace("[系统检测到输入或生成内容可能包含不安全或敏感内容，请您避免输入易产生敏感内容的提示语，感谢您的配合。]","\nps:如果出现聊天异常可以发送 /clear")
+        return b.result()
 
 #CharacterchatGLM部分
 def chatGLM(prompt):

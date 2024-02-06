@@ -1,4 +1,7 @@
-zhipuai.api_key:
-token:
-appid:
-secret:
+zhipuai.api_key: "69ef2489eaa80755.GxN2sfHvsQNjvpXi"
+token: 'l61'
+appid: "wx1c6ec54"
+secret: "1b5098f"
+proxy: "http://localhost:10809"
+gemini.api_key: "sgsfdd"
+model: gemini
