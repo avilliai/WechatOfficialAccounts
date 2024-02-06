@@ -99,22 +99,20 @@ def get_reply(info, username):
             prompt = [tep]
             chatGLMData[username] = prompt
         logger.info("gemini接收提问:" + info)
-        try:
-            # logger.info(geminiapikey)
-            r = geminirep(ak=geminiapikey, messages=prompt)
-            # 更新该用户prompt
-            prompt.append({"role": 'model', "parts": [r]})
-            # 超过10，移除第一个元素
-            chatGLMData[username] = prompt
-            # 写入文件
-            with open('data/GeminiData.yaml', 'w', encoding="utf-8") as file:
-                yaml.dump(chatGLMData, file, allow_unicode=True)
-            return r
-            # asyncio.run_coroutine_threadsafe(asyncgemini(geminiapikey,prompt, event,text), newLoop)
-            # st1 = await chatGLM(selfApiKey, meta1, prompt)
-        except Exception as e:
-            logger.error(e)
-            return "gemini启动出错，请联系master检查apiKey或重试"
+
+        # logger.info(geminiapikey)
+        r = geminirep(ak=geminiapikey, messages=prompt)
+        # 更新该用户prompt
+        prompt.append({"role": 'model', "parts": [r]})
+        # 超过10，移除第一个元素
+        chatGLMData[username] = prompt
+        # 写入文件
+        with open('data/GeminiData.yaml', 'w', encoding="utf-8") as file:
+            yaml.dump(chatGLMData, file, allow_unicode=True)
+        return r
+        # asyncio.run_coroutine_threadsafe(asyncgemini(geminiapikey,prompt, event,text), newLoop)
+        # st1 = await chatGLM(selfApiKey, meta1, prompt)
+
     else:
         tep = {"role": "user", "content": info}
         # print(type(tep))

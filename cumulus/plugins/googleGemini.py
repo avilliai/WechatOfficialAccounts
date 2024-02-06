@@ -9,14 +9,10 @@ def geminirep(ak,messages):
     genai.configure(api_key=GOOGLE_API_KEY)
 
     model = genai.GenerativeModel('gemini-pro')
-
-
-
     #print(type(messages))
 
     response = model.generate_content(messages)
-
-
-    print(response.text)
-    return response.text
+    #print()
+    r=response.text
+    return r
 
