@@ -80,6 +80,8 @@ def get_reply(info, username):
     # 构建新的prompt
     if info=="/clear":
         chatGLMData.pop(username)
+        with open('data/GeminiData.yaml', 'w', encoding="utf-8") as file:
+            yaml.dump(chatGLMData, file, allow_unicode=True)
         return "已清空对话"
     elif info=="帮助":
         return "施工中·"
@@ -89,7 +91,7 @@ def get_reply(info, username):
         # 获取以往的prompt
         if username in chatGLMData:
             prompt = chatGLMData.get(username)
-            prompt.append({"role": "user", 'parts': [text]})
+            prompt.append({"role": "user", 'parts': [info]})
         # 没有该用户，以本次对话作为prompt
         else:
             prompt = [tep]
